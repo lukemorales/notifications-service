@@ -1,10 +1,12 @@
 import { ulidSchema } from 'shared/zod';
 import { z } from 'zod';
 
+import { NotificationContent } from '../notification.entity';
+
 export const CreateNotificationDto = z.object({
-  content: z.string().min(5).max(240),
+  content: NotificationContent,
   category: z.string().min(1),
-  recipientId: ulidSchema().optional(),
+  recipientId: ulidSchema(),
 });
 
 export type CreateNotificationDto = z.infer<typeof CreateNotificationDto>;
