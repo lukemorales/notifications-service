@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { brandedEntityId } from 'shared/branded-entity-id';
-import { ulidSchema } from 'shared/ulid-schema';
 import { O } from 'shared/fp-ts';
+import { ulidSchema } from 'shared/zod';
 
 export const NotificationId = brandedEntityId('Notification');
 

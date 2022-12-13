@@ -2,10 +2,8 @@ import { Module } from '@nestjs/common';
 
 import { PrismaModule } from 'nestjs-prisma';
 
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { ClockModule } from './clock/clock.module';
-import { NotificationsModule } from './notifications/notifications.module';
+import { ClockModule } from './features/clock/clock.module';
+import { NotificationsModule } from './features/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -13,7 +11,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     NotificationsModule,
     PrismaModule.forRoot({ isGlobal: true }),
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

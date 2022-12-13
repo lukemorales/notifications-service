@@ -1,6 +1,6 @@
 import { O } from 'shared/fp-ts';
-import { optionSchema } from 'shared/option-schema';
 import { toSerializableSchema } from 'shared/to-serializable-schema';
+import { optionSchema } from 'shared/zod';
 import { z } from 'zod';
 
 import { Notification } from './notification.entity';

@@ -1,4 +1,4 @@
-import { ulidSchema } from 'shared/ulid-schema';
+import { ulidSchema } from 'shared/zod';
 import { z } from 'zod';
 
 export const CreateNotificationDto = z.object({

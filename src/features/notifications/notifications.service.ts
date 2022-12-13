@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { PrismaService } from 'nestjs-prisma';
 import { ulid } from 'ulid';
-import { ClockService } from 'clock/clock.service';
+import { ClockService } from 'features/clock/clock.service';
 import { unprefixId } from 'shared/unprefix-id';
 import { A, O } from 'shared/fp-ts';
 import { pipe } from 'fp-ts/function';
