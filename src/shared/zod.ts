@@ -5,18 +5,25 @@ import type { O } from './fp-ts';
 import { S } from './fp-ts';
 import { unprefixId } from './unprefix-id';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const isTaggedObject = (obj: unknown): obj is Record<'_tag', any> =>
+  obj != null && typeof obj === 'object' && '_tag' in obj;
+
 export const ulidSchema = () =>
   z
     .string()
     .refine((val) => /[0-9A-HJKMNP-TV-Z]{26}/.test(val), 'Invalid ULID');
 
-export const optionSchema = <T extends z.ZodTypeAny>(_: T) =>
-  z.custom<O.Option<NonNullable<T['_input']>>>(
-    (val) =>
-      val != null &&
-      typeof val === 'object' &&
-      '_tag' in val &&
-      new Set<unknown>(['Some', 'None']).has(val._tag),
+export const optionSchema = <
+  S extends z.ZodTypeAny,
+  T = S['_output'] extends O.Option<unknown> ? S['_output'] : never,
+>(
+  _: S,
+) =>
+  z.custom<T>(
+    (val): val is T =>
+      isTaggedObject(val) &&
+      new Set<O.Option<unknown>['_tag']>(['Some', 'None']).has(val._tag),
   );
 
 export const brandedEntityId = <Entity extends string>(entity: Entity) => {
