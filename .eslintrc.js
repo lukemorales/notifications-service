@@ -5,6 +5,9 @@ module.exports = {
     tsconfigRootDir: __dirname,
     sourceType: 'module',
   },
+  settings: {
+    "import/resolver": { typescript: {} },
+  },
   plugins: ['import-helpers', 'no-secrets', '@typescript-eslint', 'prettier'],
   extends: [
     'airbnb-base',
@@ -292,6 +295,7 @@ module.exports = {
         },
       },
     ],
+    'no-void': ["error", { "allowAsStatement": true }],
 
     '@typescript-eslint/method-signature-style': 'warn',
     '@typescript-eslint/no-confusing-non-null-assertion': 'warn',
