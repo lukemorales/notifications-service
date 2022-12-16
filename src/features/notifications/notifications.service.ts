@@ -1,67 +1,74 @@
 import { Injectable } from '@nestjs/common';
 
-import { PrismaService } from 'nestjs-prisma';
-import { ulid } from 'ulid';
-import { ClockService } from 'features/clock/clock.service';
-import { unprefixId } from 'shared/unprefix-id';
-import { A, O } from 'shared/fp-ts';
 import { pipe } from 'fp-ts/function';
 
-import type { CreateNotificationDto } from './dto/create-notification.dto';
-import { notificationToDomain } from './notification.domain-adapter';
+import { ClockService } from '@features/clock/clock.service';
+import { O } from '@shared/fp-ts';
+
+import type { CreateNotificationDto } from './dtos/create-notification.dto';
+import { NotificationsRepository } from './repositories/notifications.repository';
+import type { NotificationId, ReceiverId } from './notification.entity';
+
+type DispatchNotificationOptions = CreateNotificationDto;
 
 @Injectable()
 export class NotificationsService {
-  private readonly repository: PrismaService['notification'];
-
   constructor(
     private readonly clock: ClockService,
-    private readonly persistor: PrismaService,
-  ) {
-    this.repository = this.persistor.notification;
+    private readonly repository: NotificationsRepository,
+  ) {}
+
+  async countAllByReceiverId(receiverId: ReceiverId) {
+    const count = await this.repository.countAllByReceiverId(receiverId);
+
+    return count;
   }
 
-  async create({ content, category, recipientId }: CreateNotificationDto) {
+  async dispatch(options: DispatchNotificationOptions) {
+    const { category, content, receiverId } = options;
+
     const notification = await this.repository.create({
-      data: {
-        id: ulid(),
-        content,
-        category,
-        receiver_id: recipientId ?? ulid(),
-      },
+      content,
+      category,
+      receiverId,
     });
 
-    return pipe(notification, notificationToDomain);
+    return notification;
   }
 
-  async findAll() {
-    const notifications = await this.repository.findMany();
+  async findAllByReceiverId(receiverId: ReceiverId) {
+    const notifications = await this.repository.findManyByReceiverId(
+      receiverId,
+    );
 
-    return pipe(notifications, A.map(notificationToDomain));
+    return notifications;
   }
 
-  async findOne(id: string) {
-    const notification = await this.repository.findUnique({
-      where: { id: unprefixId(id) },
+  async findOne(id: NotificationId) {
+    const notification = await this.repository.findById(id);
+
+    return notification;
+  }
+
+  async invalidate(id: NotificationId) {
+    await this.repository.update(id, {
+      canceledAt: pipe(this.clock.now, O.some),
+    });
+  }
+
+  async markAsRead(id: NotificationId) {
+    const updatedNotification = await this.repository.update(id, {
+      readAt: pipe(this.clock.now, O.some),
     });
 
-    return pipe(notification, O.fromNullable, O.map(notificationToDomain));
+    return updatedNotification;
   }
 
-  async update(id: string) {
-    const updatedNotification = await this.repository.update({
-      where: { id: unprefixId(id) },
-      data: {
-        read_at: this.clock.now,
-      },
+  async markAsUnread(id: NotificationId) {
+    const updatedNotification = await this.repository.update(id, {
+      readAt: pipe(null, O.some),
     });
 
-    return pipe(updatedNotification, notificationToDomain);
-  }
-
-  async remove(id: string) {
-    await this.repository.delete({
-      where: { id: unprefixId(id) },
-    });
+    return updatedNotification;
   }
 }
