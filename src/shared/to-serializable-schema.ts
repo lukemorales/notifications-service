@@ -1,14 +1,14 @@
 import { pipe } from 'fp-ts/function';
+import type { Option } from 'fp-ts/Option';
 import type { z } from 'zod';
 
-import type { O } from './fp-ts';
 import { coerce } from './fp-ts';
 
 export const toSerializableSchema = <
   T extends z.ZodBranded<z.SomeZodObject, string>,
   X extends ReturnType<T['unwrap']>['shape'],
   K extends {
-    [P in keyof X]: X[P] extends z.ZodEffects<z.ZodTypeAny, O.Option<unknown>>
+    [P in keyof X]: X[P] extends z.ZodEffects<z.ZodTypeAny, Option<unknown>>
       ? P
       : never;
   }[keyof X],
