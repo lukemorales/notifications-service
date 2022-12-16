@@ -5,67 +5,115 @@ import {
   Body,
   Patch,
   Param,
-  Delete,
-  BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 
-import { A, O } from 'shared/fp-ts';
 import { pipe } from 'fp-ts/function';
 
+import { A, E, O } from '@shared/fp-ts';
+import { throwBadRequestOnParseError, zodDecode } from '@shared/validation';
+
 import { NotificationsService } from './notifications.service';
-import { CreateNotificationDto } from './dto/create-notification.dto';
-import { notificationTransformer } from './notification.transformer';
+import { CreateNotificationDto } from './dtos/create-notification.dto';
+import { NotificationAdapter } from './notification.adapter';
+import { NotificationId, ReceiverId } from './notification.entity';
 
 @Controller('notifications')
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
-  @Post()
-  async create(@Body() body: unknown) {
-    const createNotificationDto = pipe(body, CreateNotificationDto.safeParse);
-
-    if (!createNotificationDto.success) {
-      // eslint-disable-next-line no-console
-      console.log(createNotificationDto.error.flatten());
-
-      throw new BadRequestException(
-        'Validation error',
-        createNotificationDto.error.errors
-          .map((err) => JSON.stringify(err, null, 2))
-          .join(', '),
-      );
-    }
-
-    const notification = await this.notificationsService.create(
-      createNotificationDto.data,
-    );
-
-    return pipe(notification, notificationTransformer);
-  }
-
-  @Get()
-  async findAll() {
-    const notifications = await this.notificationsService.findAll();
-
-    return pipe(notifications, A.map(notificationTransformer));
-  }
-
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    const notification = await this.notificationsService.findOne(id);
+    const notificationId = pipe(id, this.parseNotificationId);
 
-    return pipe(notification, O.map(notificationTransformer), O.toUndefined);
+    const notification = await this.notificationsService.findOne(
+      notificationId,
+    );
+
+    return pipe(notification, O.map(NotificationAdapter.toJSON), O.toUndefined);
   }
 
-  @Patch(':id')
-  async update(@Param('id') id: string) {
-    const updatedNotification = await this.notificationsService.update(id);
+  @Get('from/:receiverId')
+  async findManyByReceiverId(@Param('receiverId') id: string) {
+    const receiverId = pipe(id, this.parseReceiverId);
 
-    return pipe(updatedNotification, notificationTransformer);
+    const receiverNotifications =
+      await this.notificationsService.findAllByReceiverId(receiverId);
+
+    return pipe(receiverNotifications, A.map(NotificationAdapter.toJSON));
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.notificationsService.remove(id);
+  @Get('from/:receiverId/count')
+  async countAllByReceiverId(@Param('receiverId') id: string) {
+    const receiverId = pipe(id, this.parseReceiverId);
+
+    const notificationsCount =
+      await this.notificationsService.countAllByReceiverId(receiverId);
+
+    return { count: notificationsCount };
+  }
+
+  @Post()
+  async create(@Body() payload: unknown) {
+    const createNotificationDto = pipe(
+      payload,
+      zodDecode(CreateNotificationDto),
+      throwBadRequestOnParseError,
+    );
+
+    const notification = await this.notificationsService.dispatch(
+      createNotificationDto,
+    );
+
+    return pipe(notification, NotificationAdapter.toJSON);
+  }
+
+  @Patch(':id/read')
+  async markAsRead(@Param('id') id: string) {
+    const notificationId = pipe(id, this.parseNotificationId);
+
+    const updatedNotification = await this.notificationsService.markAsRead(
+      notificationId,
+    );
+
+    return pipe(updatedNotification, NotificationAdapter.toJSON);
+  }
+
+  @Patch(':id/unread')
+  async markAsUnread(@Param('id') id: string) {
+    const notificationId = pipe(id, this.parseNotificationId);
+
+    const updatedNotification = await this.notificationsService.markAsUnread(
+      notificationId,
+    );
+
+    return pipe(updatedNotification, NotificationAdapter.toJSON);
+  }
+
+  @Patch(':id/invalidate')
+  async remove(@Param('id') id: string) {
+    const notificationId = pipe(id, this.parseNotificationId);
+
+    return this.notificationsService.invalidate(notificationId);
+  }
+
+  private parseNotificationId(id: string) {
+    return pipe(
+      id,
+      zodDecode(NotificationId),
+      E.getOrElse(() => {
+        throw new NotFoundException(`Notification not found: ${id}`);
+      }),
+    );
+  }
+
+  private parseReceiverId(id: string) {
+    return pipe(
+      id,
+      zodDecode(ReceiverId),
+      E.getOrElse(() => {
+        throw new NotFoundException(`Receiver not found: ${id}`);
+      }),
+    );
   }
 }
