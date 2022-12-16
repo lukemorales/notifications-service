@@ -315,7 +315,7 @@ module.exports = {
 
     '@typescript-eslint/no-explicit-any': ['warn', { ignoreRestArgs: true }],
     'no-extra-parens': 'off',
-    '@typescript-eslint/no-extra-parens': 'warn',
+    '@typescript-eslint/no-extra-parens': 'off',
     '@typescript-eslint/no-extraneous-class': 'off',
     '@typescript-eslint/no-for-in-array': 'error',
     '@typescript-eslint/no-inferrable-types': [
