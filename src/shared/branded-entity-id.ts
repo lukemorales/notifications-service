@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import { S } from './fp-ts';
 import { unprefixId } from './unprefix-id';
+import { ulidSchema } from './zod';
 
 export const brandedEntityId = <Entity extends string>(entity: Entity) => {
   const prefix = entity
@@ -11,8 +12,7 @@ export const brandedEntityId = <Entity extends string>(entity: Entity) => {
     .toLowerCase();
 
   return (
-    z
-      .string()
+    ulidSchema()
       .describe(`Branded id for domain of entity ${entity}`)
       // eslint-disable-next-line consistent-return
       .superRefine((id, ctx) => {
@@ -37,8 +37,3 @@ export const brandedEntityId = <Entity extends string>(entity: Entity) => {
       .brand<`${Entity}Id`>()
   );
 };
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type Unbranded<T extends z.ZodBranded<any, any>> = z.infer<
-  ReturnType<T['unwrap']>
->;

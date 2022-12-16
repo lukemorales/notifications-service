@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { pipe } from 'fp-ts/function';
+import type { Option } from 'fp-ts/Option';
 
-import type { O } from './fp-ts';
 import { S } from './fp-ts';
 import { unprefixId } from './unprefix-id';
 
@@ -16,14 +16,14 @@ export const ulidSchema = () =>
 
 export const optionSchema = <
   S extends z.ZodTypeAny,
-  T = S['_output'] extends O.Option<unknown> ? S['_output'] : never,
+  T = S['_output'] extends Option<unknown> ? S['_output'] : never,
 >(
   _: S,
 ) =>
   z.custom<T>(
     (val): val is T =>
       isTaggedObject(val) &&
-      new Set<O.Option<unknown>['_tag']>(['Some', 'None']).has(val._tag),
+      new Set<Option<unknown>['_tag']>(['Some', 'None']).has(val._tag),
   );
 
 export const brandedEntityId = <Entity extends string>(entity: Entity) => {
