@@ -1,20 +1,32 @@
 import { option } from 'fp-ts';
-import { flow, unsafeCoerce } from 'fp-ts/function';
+import { flow } from 'fp-ts/function';
 
-export {
-  string as S,
-  readonlyArray as A,
-  readonlyRecord as R,
-  struct as D,
-  either as E,
-} from 'fp-ts';
+export * from 'fp-ts/Option';
 
-export const coerce = <B>(a: unknown) => unsafeCoerce<unknown, B>(a);
+/**
+ * Wrap all properties in `T` with an `Option`.
+ */
+export type Optional<T extends Record<string, unknown>> = {
+  [P in keyof T]: option.Option<T[P]>;
+};
 
-const fromNullableMap = <T, U>(
+/**
+ * Constructs a new `Option` from a nullable type. If the value is null or undefined, returns `None`, otherwise returns the value wrapped in a `Some` while applying the effect provided.
+ *
+ */
+export const fromNullableMap = <T, U>(
   mapping: (value: T) => U,
 ): ((value: T | null | undefined) => option.Option<U>) =>
   flow(option.fromNullable, option.map(mapping));
+
+/**
+ * Applies the provided mapping function to an `Option` and extracts the value out of the structure, if it exists. Otherwise returns `undefined` .
+ *
+ */
+export const mapToUndefined = <T, U>(
+  f: (value: T) => U,
+): ((value: option.Option<T>) => U | undefined) =>
+  flow(option.map(f), option.toUndefined);
 
 /**
  * Applies the provided mapping function to a value that is potentially `undefined`.
@@ -28,9 +40,6 @@ const fromNullableMap = <T, U>(
  * ### Example
  *
  * ```ts
- * import { pipe } from 'fp-ts/lib/functions';
- * import { mapUndefined } from '@workos-inc/standard';
- *
  * const square = (n: number) => n * n;
  *
  * const squared = pipe(5, mapUndefined(square));
@@ -40,13 +49,7 @@ const fromNullableMap = <T, U>(
  * // notSquared = undefined
  * ```
  */
-const mapToUndefined = <T, U>(
+export const mapUndefined = <T, U>(
   f: (value: T) => U,
 ): ((value: T | null | undefined) => U | undefined) =>
-  flow(option.fromNullable, option.map(f), option.toUndefined);
-
-export const O = {
-  ...option,
-  fromNullableMap,
-  mapToUndefined,
-};
+  flow(option.fromNullable, mapToUndefined(f));

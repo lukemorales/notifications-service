@@ -2,6 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 
 import { flow, pipe } from 'fp-ts/function';
 import type { z } from 'zod';
+import { fromZodError } from 'zod-validation-error';
 
 import { coerce, E } from './fp-ts';
 
@@ -30,9 +31,6 @@ export const throwBadRequestOnParseError = <E extends z.ZodError<T>, T>(
       // eslint-disable-next-line no-console
       console.log(error.flatten());
 
-      throw new BadRequestException(
-        'Validation error',
-        error.errors.map((err) => JSON.stringify(err, null, 2)).join(', '),
-      );
+      throw new BadRequestException(fromZodError(error));
     }),
   );

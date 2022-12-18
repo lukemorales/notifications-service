@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
-import { brandedEntityId } from '@shared/branded-entity-id';
-import { O } from '@shared/fp-ts';
 import type { Unbranded } from '@shared/zod';
+import { brandedEntityId } from '@shared/zod';
+import { O } from '@shared/fp-ts';
 
 export const ReceiverId = brandedEntityId('Receiver');
 

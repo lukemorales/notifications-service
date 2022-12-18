@@ -3,7 +3,6 @@ import { Injectable } from '@nestjs/common';
 import { pipe } from 'fp-ts/function';
 import { PrismaService } from 'nestjs-prisma';
 import { ulid } from 'ulid';
-import type { Option } from 'fp-ts/Option';
 
 import { A, O } from '@shared/fp-ts';
 import { unprefixId } from '@shared/unprefix-id';
@@ -66,7 +65,7 @@ export class PrismaNotificationsRepository implements NotificationsRepository {
     return pipe(notification, NotificationAdapter.toDomain);
   }
 
-  async findById(id: NotificationId): Promise<Option<Notification>> {
+  async findById(id: NotificationId): Promise<O.Option<Notification>> {
     const notification = await this.repository.findUnique({
       where: {
         id: unprefixId(id),

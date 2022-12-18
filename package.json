@@ -38,7 +38,8 @@
     "rimraf": "^3.0.2",
     "rxjs": "^7.8.0",
     "ulid": "^2.3.0",
-    "zod": "^3.20.2"
+    "zod": "^3.20.2",
+    "zod-validation-error": "^0.2.2"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.1.5",

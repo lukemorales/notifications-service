@@ -1,14 +1,14 @@
 import { pipe } from 'fp-ts/function';
 import { z } from 'zod';
 
-import { S } from './fp-ts';
-import { unprefixId } from './unprefix-id';
-import { ulidSchema } from './zod';
+import { S } from '../fp-ts';
+import { unprefixId } from '../unprefix-id';
+import { ulidSchema } from './schemas';
 
 export const brandedEntityId = <Entity extends string>(entity: Entity) => {
   const prefix = entity
     .split(/\.?(?=[A-Z])/)
-    .join(':')
+    .join('_')
     .toLowerCase();
 
   return (

@@ -1,6 +1,3 @@
-import type { Option } from 'fp-ts/Option';
-
-import type { Optional } from '@shared/optional';
 import { O } from '@shared/fp-ts';
 
 import type { CreateNotificationDto } from '../dtos/create-notification.dto';
@@ -13,7 +10,7 @@ import type {
 
 export type CreateNotificationOptions = CreateNotificationDto;
 
-export type UpdateNotificationsOptions = Optional<
+export type UpdateNotificationsOptions = O.Optional<
   Omit<
     NotificationSchema,
     'id' | 'receiverId' | 'createdAt' | 'readAt' | 'canceledAt'
@@ -38,7 +35,7 @@ export abstract class NotificationsRepository {
     options: Partial<UpdateNotificationsOptions>,
   ): Promise<Notification>;
 
-  abstract findById(id: NotificationId): Promise<Option<Notification>>;
+  abstract findById(id: NotificationId): Promise<O.Option<Notification>>;
 
   abstract findManyByReceiverId(
     receiverId: ReceiverId,

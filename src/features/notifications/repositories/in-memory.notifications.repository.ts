@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
 import { pipe } from 'fp-ts/function';
-import type { Option } from 'fp-ts/Option';
 
 import { O, A } from '@shared/fp-ts';
 
@@ -67,7 +66,7 @@ export class InMemoryNotificationRepository implements NotificationsRepository {
     );
   }
 
-  async findById(id: NotificationId): Promise<Option<Notification>> {
+  async findById(id: NotificationId): Promise<O.Option<Notification>> {
     return pipe(
       this.items,
       A.findFirst((notification) => notification.id === id),
