@@ -8,7 +8,8 @@ import { ulid } from 'ulid';
 import Chance from 'chance';
 import { randPhrase } from '@ngneat/falso';
 
-import { NotificationCategory } from '../src/features/notifications/notification.entity';
+import { NotificationModelCategory } from '@features/notifications/notification.model';
+import { RecipientId } from '@features/recipients/recipient.entity';
 
 const prisma = new PrismaClient();
 const main = async () => {
@@ -19,9 +20,9 @@ const main = async () => {
   }
 
   const chance = new Chance();
-  const receiverIds = Array.from({ length: 5 }, () => ulid());
+  const recipientIds = Array.from({ length: 5 }, () => ulid());
 
-  for (const receiverId of receiverIds) {
+  for (const recipientId of recipientIds) {
     const amount = Array.from(
       { length: chance.integer({ min: 3, max: 10 }) },
       (_, i) => i,
@@ -37,9 +38,9 @@ const main = async () => {
       await prisma.notification.create({
         data: {
           id: ulid(),
-          content,
-          category: chance.pickone(NotificationCategory.options),
-          receiver_id: receiverId,
+          content: content.substring(0, 240),
+          category: chance.pickone(NotificationModelCategory.options),
+          recipient_id: RecipientId.parse(recipientId),
         },
       });
     }

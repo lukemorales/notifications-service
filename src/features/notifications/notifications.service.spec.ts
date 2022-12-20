@@ -2,60 +2,75 @@ import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
 
 import assert from 'assert';
-import { pipe } from 'fp-ts/function';
+import { ulid } from 'ulid';
+import { PrismaModule, PrismaService } from 'nestjs-prisma';
+import { generatePrismock } from 'prismock';
+import type { PrismockClient } from 'prismock/build/main/lib/client';
 
-import { A, O } from '@shared/fp-ts';
+import { O } from '@shared/fp-ts';
 import { ClockService } from '@features/clock/clock.service';
 import { ClockModule } from '@features/clock/clock.module';
+import { RecipientId } from '@features/recipients/recipient.entity';
+import { RecipientFactory } from '@features/recipients/factories/recipient.factory';
 
 import { NotificationsService } from './notifications.service';
-import { InMemoryNotificationRepository } from './repositories/in-memory.notifications.repository';
 import { NotificationsRepository } from './repositories/notifications.repository';
-import {
-  makeNotification,
-  makeReceiverId,
-} from './factories/notification.factory';
+import { NotificationFactory } from './factories/notification.factory';
+import { PrismaNotificationsRepository } from './repositories/prisma-notifications.repository';
+import { NotificationId } from './notification.entity';
 
 describe('NotificationsService', () => {
   let clock: ClockService;
   let sut: NotificationsService;
-  let repository: InMemoryNotificationRepository;
+  let repository: PrismockClient;
 
   beforeEach(async () => {
+    const prismock = await generatePrismock();
+
     const module: TestingModule = await Test.createTestingModule({
-      imports: [ClockModule],
+      imports: [PrismaModule, ClockModule],
       providers: [
         NotificationsService,
         {
           provide: NotificationsRepository,
-          useClass: InMemoryNotificationRepository,
+          useClass: PrismaNotificationsRepository,
         },
       ],
-    }).compile();
+    })
+      .overrideProvider(PrismaService)
+      .useValue(prismock)
+      .compile();
 
     clock = module.get(ClockService);
     sut = module.get(NotificationsService);
     repository = module.get(NotificationsRepository);
+
+    repository = prismock;
+    repository.setData({ notification: [] });
   });
 
   describe('countAllByReceiverId', () => {
     const performSetup = () => {
-      const receiverId = makeReceiverId();
-      const receiverNotifications = [1, 2, 3].map(() =>
-        makeNotification({ receiverId }),
+      const { id: recipientId } = RecipientFactory.create();
+      const recipientNotifications = [1, 2, 3].map(() =>
+        NotificationFactory.create({ recipientId }),
       );
 
-      const otherNotifications = [1, 2, 3, 4, 5].map(() => makeNotification());
+      const otherNotifications = [1, 2, 3, 4, 5].map(() =>
+        NotificationFactory.create(),
+      );
 
-      repository.items.push(...receiverNotifications, ...otherNotifications);
+      repository.setData({
+        notification: [...recipientNotifications, ...otherNotifications],
+      });
 
-      return { receiverId };
+      return { recipientId: RecipientId.parse(recipientId) };
     };
 
-    it('counts the total of notifications sent to the specified receiver', async () => {
-      const { receiverId } = performSetup();
+    it('counts the total of notifications sent to the specified recipient', async () => {
+      const { recipientId } = performSetup();
 
-      const count = await sut.countAllByReceiverId(receiverId);
+      const count = await sut.countAllByRecipientId(recipientId);
 
       expect(count).toBe(3);
     });
@@ -63,19 +78,19 @@ describe('NotificationsService', () => {
 
   describe('dispatch', () => {
     it('creates and dispatches a new notification', async () => {
-      const receiverId = makeReceiverId();
+      const { id: recipientId } = RecipientFactory.create();
 
       const notification = await sut.dispatch({
-        category: 'NEWS',
+        category: 'News',
         content: 'x'.repeat(5),
-        receiverId,
+        recipientId,
       });
 
       expect(notification).toEqual(
         expect.objectContaining({
-          category: 'NEWS',
+          category: 'News',
           content: 'xxxxx',
-          receiverId,
+          recipientId,
         }),
       );
     });
@@ -83,44 +98,51 @@ describe('NotificationsService', () => {
 
   describe('findAllByReceiverId', () => {
     const performSetup = () => {
-      const receiverId = makeReceiverId();
-      const receiverNotifications = [1, 2, 3].map(() =>
-        makeNotification({ receiverId }),
+      const { id: recipientId } = RecipientFactory.create();
+
+      const recipientNotifications = [1, 2, 3].map(() =>
+        NotificationFactory.create({ recipientId }),
       );
 
-      const otherNotifications = [1, 2, 3, 4, 5].map(() => makeNotification());
+      const otherNotifications = [1, 2, 3, 4, 5].map(() =>
+        NotificationFactory.create(),
+      );
 
-      repository.items.push(...receiverNotifications, ...otherNotifications);
+      repository.setData({
+        notification: [...recipientNotifications, ...otherNotifications],
+      });
 
-      return { receiverId };
+      return { recipientId };
     };
 
-    it('finds all notifications sent to the specified receiver', async () => {
-      const { receiverId } = performSetup();
+    it('finds all notifications sent to the specified recipient', async () => {
+      const { recipientId } = performSetup();
 
-      const notifications = await sut.findAllByReceiverId(receiverId);
+      const notifications = await sut.findAllByRecipientId(recipientId);
 
       expect(notifications).toHaveLength(3);
       expect(notifications).toEqual([
-        expect.objectContaining({ receiverId }),
-        expect.objectContaining({ receiverId }),
-        expect.objectContaining({ receiverId }),
+        expect.objectContaining({ recipientId }),
+        expect.objectContaining({ recipientId }),
+        expect.objectContaining({ recipientId }),
       ]);
     });
   });
 
   describe('findOne', () => {
     it('finds a notification', async () => {
-      const target = makeNotification();
-      repository.items.push(target);
+      const model = NotificationFactory.create();
+      repository.setData({ notification: [model] });
 
-      const notification = await sut.findOne(target.id);
+      const targetId = NotificationId.parse(model.id);
+
+      const notification = await sut.findOne(targetId);
 
       assert.ok(O.isSome(notification));
 
       expect(notification.value).toEqual(
         expect.objectContaining({
-          id: target.id,
+          id: targetId,
         }),
       );
     });
@@ -130,23 +152,23 @@ describe('NotificationsService', () => {
     it('invalidates a notification', async () => {
       const timestamp = new Date();
 
-      const target = makeNotification({
+      const model = NotificationFactory.create({
         canceledAt: timestamp,
       });
-      repository.items.push(target);
+      repository.setData({ notification: [model] });
 
-      await sut.invalidate(target.id);
+      const targetId = NotificationId.parse(model.id);
 
-      const invalidatedNotification = pipe(
-        repository.items,
-        A.findFirst((notification) => notification.id === target.id),
-      );
+      await sut.invalidate(targetId);
 
-      assert.ok(O.isSome(invalidatedNotification));
+      const invalidatedNotification =
+        await repository.notification.findUniqueOrThrow({
+          where: { id: model.id },
+        });
 
-      expect(invalidatedNotification.value).toEqual(
+      expect(invalidatedNotification).toEqual(
         expect.objectContaining({
-          canceledAt: O.some(timestamp),
+          canceled_at: timestamp,
         }),
       );
     });
@@ -156,12 +178,14 @@ describe('NotificationsService', () => {
     it('invalidates a notification', async () => {
       const timestamp = new Date();
 
-      const target = makeNotification();
-      repository.items.push(target);
+      const model = NotificationFactory.create();
+      repository.setData({ notification: [model] });
 
       jest.spyOn(clock, 'now', 'get').mockReturnValue(timestamp);
 
-      const notification = await sut.markAsRead(target.id);
+      const targetId = NotificationId.parse(model.id);
+
+      const notification = await sut.markAsRead(targetId);
 
       expect(notification).toEqual(
         expect.objectContaining({
@@ -173,12 +197,14 @@ describe('NotificationsService', () => {
 
   describe('markAsUnread', () => {
     it('invalidates a notification', async () => {
-      const target = makeNotification({
+      const model = NotificationFactory.create({
         readAt: new Date(),
       });
-      repository.items.push(target);
+      repository.setData({ notification: [model] });
 
-      const notification = await sut.markAsUnread(target.id);
+      const targetId = NotificationId.parse(model.id);
+
+      const notification = await sut.markAsUnread(targetId);
 
       expect(notification).toEqual(
         expect.objectContaining({

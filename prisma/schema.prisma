@@ -8,14 +8,14 @@ datasource db {
 }
 
 model Notification {
-  id          String    @id
-  content     String
-  category    String
-  receiver_id String
-  read_at     DateTime?
-  canceled_at DateTime?
-  created_at  DateTime  @default(now())
+  id           String    @id
+  content      String
+  category     String
+  recipient_id String
+  read_at      DateTime?
+  canceled_at  DateTime?
+  created_at   DateTime  @default(now())
 
-  @@index([receiver_id])
+  @@index([recipient_id])
   @@map("notifications")
 }

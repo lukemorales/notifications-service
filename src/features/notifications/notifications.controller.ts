@@ -12,11 +12,12 @@ import { pipe } from 'fp-ts/function';
 
 import { A, E, O } from '@shared/fp-ts';
 import { throwBadRequestOnParseError, zodDecode } from '@shared/validation';
+import { RecipientId } from '@features/recipients/recipient.entity';
 
 import { NotificationsService } from './notifications.service';
 import { CreateNotificationDto } from './dtos/create-notification.dto';
 import { NotificationAdapter } from './notification.adapter';
-import { NotificationId, ReceiverId } from './notification.entity';
+import { NotificationId } from './notification.entity';
 
 @Controller('notifications')
 export class NotificationsController {
@@ -38,7 +39,7 @@ export class NotificationsController {
     const receiverId = pipe(id, this.parseReceiverId);
 
     const receiverNotifications =
-      await this.notificationsService.findAllByReceiverId(receiverId);
+      await this.notificationsService.findAllByRecipientId(receiverId);
 
     return pipe(receiverNotifications, A.map(NotificationAdapter.toJSON));
   }
@@ -48,7 +49,7 @@ export class NotificationsController {
     const receiverId = pipe(id, this.parseReceiverId);
 
     const notificationsCount =
-      await this.notificationsService.countAllByReceiverId(receiverId);
+      await this.notificationsService.countAllByRecipientId(receiverId);
 
     return { count: notificationsCount };
   }
@@ -110,7 +111,7 @@ export class NotificationsController {
   private parseReceiverId(id: string) {
     return pipe(
       id,
-      zodDecode(ReceiverId),
+      zodDecode(RecipientId),
       E.getOrElse(() => {
         throw new NotFoundException(`Receiver not found: ${id}`);
       }),

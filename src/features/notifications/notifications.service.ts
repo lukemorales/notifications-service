@@ -4,10 +4,11 @@ import { pipe } from 'fp-ts/function';
 
 import { ClockService } from '@features/clock/clock.service';
 import { O } from '@shared/fp-ts';
+import type { RecipientId } from '@features/recipients/recipient.entity';
 
 import type { CreateNotificationDto } from './dtos/create-notification.dto';
 import { NotificationsRepository } from './repositories/notifications.repository';
-import type { NotificationId, ReceiverId } from './notification.entity';
+import type { NotificationId } from './notification.entity';
 
 type DispatchNotificationOptions = CreateNotificationDto;
 
@@ -18,27 +19,27 @@ export class NotificationsService {
     private readonly repository: NotificationsRepository,
   ) {}
 
-  async countAllByReceiverId(receiverId: ReceiverId) {
-    const count = await this.repository.countAllByReceiverId(receiverId);
+  async countAllByRecipientId(recipientId: RecipientId) {
+    const count = await this.repository.countAllByRecipientId(recipientId);
 
     return count;
   }
 
   async dispatch(options: DispatchNotificationOptions) {
-    const { category, content, receiverId } = options;
+    const { category, content, recipientId } = options;
 
     const notification = await this.repository.create({
       content,
       category,
-      receiverId,
+      recipientId,
     });
 
     return notification;
   }
 
-  async findAllByReceiverId(receiverId: ReceiverId) {
-    const notifications = await this.repository.findManyByReceiverId(
-      receiverId,
+  async findAllByRecipientId(recipientId: RecipientId) {
+    const notifications = await this.repository.findManyByRecipientId(
+      recipientId,
     );
 
     return notifications;

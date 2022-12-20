@@ -1,3 +1,5 @@
+import type { RecipientId } from '@features/recipients/recipient.entity';
+import { createDefaultEntityUpdateOptions } from '@shared/create-default-entity-update-options';
 import { O } from '@shared/fp-ts';
 
 import type { CreateNotificationDto } from '../dtos/create-notification.dto';
@@ -5,7 +7,6 @@ import type {
   Notification,
   NotificationId,
   NotificationSchema,
-  ReceiverId,
 } from '../notification.entity';
 
 export type CreateNotificationOptions = CreateNotificationDto;
@@ -13,19 +14,20 @@ export type CreateNotificationOptions = CreateNotificationDto;
 export type UpdateNotificationsOptions = O.Optional<
   Omit<
     NotificationSchema,
-    'id' | 'receiverId' | 'createdAt' | 'readAt' | 'canceledAt'
+    'id' | 'recipientId' | 'createdAt' | 'readAt' | 'canceledAt'
   > & {
     readAt: Date | null;
     canceledAt: Date | null;
   }
 >;
 
-export const UPDATE_NOTIFICATION_OPTIONS: UpdateNotificationsOptions = {
-  category: O.none,
-  content: O.none,
-  readAt: O.none,
-  canceledAt: O.none,
-};
+export const mergeUpdateNotificationOptions =
+  createDefaultEntityUpdateOptions<UpdateNotificationsOptions>({
+    category: O.none,
+    content: O.none,
+    readAt: O.none,
+    canceledAt: O.none,
+  });
 
 export abstract class NotificationsRepository {
   abstract create(options: CreateNotificationOptions): Promise<Notification>;
@@ -37,9 +39,9 @@ export abstract class NotificationsRepository {
 
   abstract findById(id: NotificationId): Promise<O.Option<Notification>>;
 
-  abstract findManyByReceiverId(
-    receiverId: ReceiverId,
+  abstract findManyByRecipientId(
+    receiverId: RecipientId,
   ): Promise<readonly Notification[]>;
 
-  abstract countAllByReceiverId(receiverId: ReceiverId): Promise<number>;
+  abstract countAllByRecipientId(receiverId: RecipientId): Promise<number>;
 }
