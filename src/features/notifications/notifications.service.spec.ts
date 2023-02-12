@@ -2,7 +2,6 @@ import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
 
 import assert from 'assert';
-import { ulid } from 'ulid';
 import { PrismaModule, PrismaService } from 'nestjs-prisma';
 import { generatePrismock } from 'prismock';
 import type { PrismockClient } from 'prismock/build/main/lib/client';

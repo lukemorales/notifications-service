@@ -1,9 +1,9 @@
 /* eslint-disable max-classes-per-file */
 import { pipe } from 'fp-ts/function';
+import { exhaustive } from 'exhaustive';
 
 import { O } from '@shared/fp-ts';
 import type { SerializableEntity } from '@shared/serializable-entity';
-import { exhaustive } from '@shared/exhaustive';
 
 import { NotificationCategory } from './notification.entity';
 import type { NotificationSchema } from './notification.entity';

@@ -24,8 +24,8 @@ import type { Notification, NotificationId } from '../notification.entity';
 export class PrismaNotificationsRepository implements NotificationsRepository {
   private readonly repository: PrismaService['notification'];
 
-  constructor(private readonly prisma: PrismaService) {
-    this.repository = this.prisma.notification;
+  constructor(prisma: PrismaService) {
+    this.repository = prisma.notification;
   }
 
   async create(options: CreateNotificationOptions): Promise<Notification> {
