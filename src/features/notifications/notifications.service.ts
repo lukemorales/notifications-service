@@ -1,14 +1,13 @@
 import { Injectable } from '@nestjs/common';
 
-import { pipe } from 'fp-ts/function';
+import { O } from 'funkcia';
 
 import { ClockService } from '@features/clock/clock.service';
-import { O } from '@shared/fp-ts';
 import type { RecipientId } from '@features/recipients/recipient.entity';
 
 import type { CreateNotificationDto } from './dtos/create-notification.dto';
-import { NotificationsRepository } from './repositories/notifications.repository';
 import type { NotificationId } from './notification.entity';
+import { NotificationsRepository } from './repositories/notifications.repository';
 
 type DispatchNotificationOptions = CreateNotificationDto;
 
@@ -53,13 +52,13 @@ export class NotificationsService {
 
   async invalidate(id: NotificationId) {
     await this.repository.update(id, {
-      canceledAt: pipe(this.clock.now, O.some),
+      canceledAt: O.some(this.clock.now),
     });
   }
 
   async markAsRead(id: NotificationId) {
     const updatedNotification = await this.repository.update(id, {
-      readAt: pipe(this.clock.now, O.some),
+      readAt: O.some(this.clock.now),
     });
 
     return updatedNotification;
@@ -67,7 +66,7 @@ export class NotificationsService {
 
   async markAsUnread(id: NotificationId) {
     const updatedNotification = await this.repository.update(id, {
-      readAt: pipe(null, O.some),
+      readAt: O.some(null),
     });
 
     return updatedNotification;

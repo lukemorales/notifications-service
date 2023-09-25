@@ -1,13 +1,10 @@
-import { option } from 'fp-ts';
-import { flow } from 'fp-ts/function';
-
-export * from 'fp-ts/Option';
+import { O, flow } from 'funkcia';
 
 /**
  * Wrap all properties in `T` with an `Option`.
  */
 export type Optional<T extends Record<string, unknown>> = {
-  [P in keyof T]: option.Option<T[P]>;
+  [P in keyof T]: O.Option<T[P]>;
 };
 
 /**
@@ -16,8 +13,8 @@ export type Optional<T extends Record<string, unknown>> = {
  */
 export const fromNullableMap = <T, U>(
   mapping: (value: T) => U,
-): ((value: T | null | undefined) => option.Option<U>) =>
-  flow(option.fromNullable, option.map(mapping));
+): ((value: T | null | undefined) => O.Option<U>) =>
+  flow(O.fromNullable, O.map(mapping));
 
 /**
  * Applies the provided mapping function to an `Option` and extracts the value out of the structure, if it exists. Otherwise returns `undefined` .
@@ -25,8 +22,7 @@ export const fromNullableMap = <T, U>(
  */
 export const mapToUndefined = <T, U>(
   f: (value: T) => U,
-): ((value: option.Option<T>) => U | undefined) =>
-  flow(option.map(f), option.toUndefined);
+): ((value: O.Option<T>) => U | undefined) => flow(O.map(f), O.toUndefined);
 
 /**
  * Applies the provided mapping function to a value that is potentially `undefined`.
@@ -52,4 +48,4 @@ export const mapToUndefined = <T, U>(
 export const mapUndefined = <T, U>(
   f: (value: T) => U,
 ): ((value: T | null | undefined) => U | undefined) =>
-  flow(option.fromNullable, mapToUndefined(f));
+  flow(O.fromNullable, mapToUndefined(f));

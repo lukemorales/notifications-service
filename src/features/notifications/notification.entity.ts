@@ -1,9 +1,9 @@
+import type { Option } from 'funkcia';
+import { O, pipe } from 'funkcia';
 import { z } from 'zod';
-import { pipe } from 'fp-ts/function';
 
-import { brandedEntityId } from '@shared/zod';
-import { O } from '@shared/fp-ts';
 import { RecipientId } from '@features/recipients/recipient.entity';
+import { brandedEntityId } from '@shared/zod';
 
 export const NotificationId = brandedEntityId('Notification');
 
@@ -41,9 +41,9 @@ export class Notification implements NotificationSchema {
 
   recipientId: RecipientId;
 
-  readAt: O.Option<Date>;
+  readAt: Option<Date>;
 
-  canceledAt: O.Option<Date>;
+  canceledAt: Option<Date>;
 
   createdAt: Date;
 

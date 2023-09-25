@@ -2,21 +2,21 @@ import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
 
 import assert from 'assert';
+import { O } from 'funkcia';
 import { PrismaModule, PrismaService } from 'nestjs-prisma';
 import { generatePrismock } from 'prismock';
 import type { PrismockClient } from 'prismock/build/main/lib/client';
 
-import { O } from '@shared/fp-ts';
-import { ClockService } from '@features/clock/clock.service';
 import { ClockModule } from '@features/clock/clock.module';
-import { RecipientId } from '@features/recipients/recipient.entity';
+import { ClockService } from '@features/clock/clock.service';
 import { RecipientFactory } from '@features/recipients/factories/recipient.factory';
+import { RecipientId } from '@features/recipients/recipient.entity';
 
+import { NotificationFactory } from './factories/notification.factory';
+import { NotificationId } from './notification.entity';
 import { NotificationsService } from './notifications.service';
 import { NotificationsRepository } from './repositories/notifications.repository';
-import { NotificationFactory } from './factories/notification.factory';
 import { PrismaNotificationsRepository } from './repositories/prisma-notifications.repository';
-import { NotificationId } from './notification.entity';
 
 describe('NotificationsService', () => {
   let clock: ClockService;

@@ -1,6 +1,8 @@
+import { O } from 'funkcia';
+
 import type { RecipientId } from '@features/recipients/recipient.entity';
 import { createDefaultEntityUpdateOptions } from '@shared/create-default-entity-update-options';
-import { O } from '@shared/fp-ts';
+import type { Optional } from '@shared/fp-ts/option';
 
 import type { CreateNotificationDto } from '../dtos/create-notification.dto';
 import type {
@@ -11,7 +13,7 @@ import type {
 
 export type CreateNotificationOptions = CreateNotificationDto;
 
-export type UpdateNotificationsOptions = O.Optional<
+export type UpdateNotificationsOptions = Optional<
   Omit<
     NotificationSchema,
     'id' | 'recipientId' | 'createdAt' | 'readAt' | 'canceledAt'
@@ -23,10 +25,10 @@ export type UpdateNotificationsOptions = O.Optional<
 
 export const mergeUpdateNotificationOptions =
   createDefaultEntityUpdateOptions<UpdateNotificationsOptions>({
-    category: O.none,
-    content: O.none,
-    readAt: O.none,
-    canceledAt: O.none,
+    category: O.none(),
+    content: O.none(),
+    readAt: O.none(),
+    canceledAt: O.none(),
   });
 
 export abstract class NotificationsRepository {

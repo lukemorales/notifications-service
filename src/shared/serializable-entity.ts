@@ -1,4 +1,4 @@
-import type { Option } from 'fp-ts/Option';
+import type { Option } from 'funkcia';
 import type { z } from 'zod';
 
 export type SerializableEntity<Entity extends Record<string, unknown>> = {

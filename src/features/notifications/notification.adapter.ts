@@ -1,15 +1,13 @@
 /* eslint-disable max-classes-per-file */
-import { pipe } from 'fp-ts/function';
 import { exhaustive } from 'exhaustive';
+import { O, pipe } from 'funkcia';
 
-import { O } from '@shared/fp-ts';
 import type { SerializableEntity } from '@shared/serializable-entity';
 
-import { NotificationCategory } from './notification.entity';
 import type { NotificationSchema } from './notification.entity';
+import { Notification, NotificationCategory } from './notification.entity';
 import type { NotificationModel } from './notification.model';
 import { NotificationModelCategory } from './notification.model';
-import { Notification } from './notification.entity';
 
 export class NotificationCategoryAdapter {
   static toDomain(raw: string) {
@@ -52,8 +50,8 @@ export class NotificationAdapter {
       content: domain.content,
       category: domain.category,
       recipientId: domain.recipientId,
-      readAt: pipe(domain.readAt, O.toNullable),
-      canceledAt: pipe(domain.canceledAt, O.toNullable),
+      readAt: domain.readAt.pipe(O.toNullable),
+      canceledAt: domain.canceledAt.pipe(O.toNullable),
       createdAt: domain.createdAt,
     };
   }

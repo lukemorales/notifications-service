@@ -1,8 +1,6 @@
-import { pipe } from 'fp-ts/function';
-import type { Option } from 'fp-ts/Option';
-import type { z } from 'zod';
-
-import { coerce } from './fp-ts';
+import type { Option } from 'funkcia';
+import { coerce, pipe } from 'funkcia';
+import { type z } from 'zod';
 
 export const toSerializableSchema = <
   T extends z.ZodBranded<z.SomeZodObject, string>,

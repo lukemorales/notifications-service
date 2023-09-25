@@ -1,7 +1,7 @@
-import { pipe } from 'fp-ts/function';
+import { O } from 'funkcia';
 import { ulid } from 'ulid';
 
-import { O } from '@shared/fp-ts';
+import type { Optional } from '@shared/fp-ts/option';
 
 import { RecipientId } from '../recipient.entity';
 
@@ -14,13 +14,13 @@ export class RecipientFactory {
     const factory = new RecipientFactory();
 
     return factory.build({
-      id: pipe(overrides.id, O.fromNullable),
+      id: O.fromNullable(overrides.id),
     });
   }
 
-  private build(overrides: O.Optional<RecipientFactoryInput>) {
+  private build(overrides: Optional<RecipientFactoryInput>) {
     return {
-      id: pipe(overrides.id, O.getOrElse(ulid), RecipientId.parse),
+      id: overrides.id.pipe(O.getOrElse(ulid), RecipientId.parse),
     };
   }
 }

@@ -1,24 +1,23 @@
 import { Injectable } from '@nestjs/common';
 
-import { pipe } from 'fp-ts/function';
+import { A, O, pipe } from 'funkcia';
 import { PrismaService } from 'nestjs-prisma';
 import { ulid } from 'ulid';
 
-import { A, O } from '@shared/fp-ts';
-import { unprefixId } from '@shared/unprefix-id';
 import type { RecipientId } from '@features/recipients/recipient.entity';
+import { unprefixId } from '@shared/unprefix-id';
 
 import {
   NotificationAdapter,
   NotificationCategoryAdapter,
 } from '../notification.adapter';
+import type { Notification, NotificationId } from '../notification.entity';
 import type {
   CreateNotificationOptions,
   NotificationsRepository,
   UpdateNotificationsOptions,
 } from './notifications.repository';
 import { mergeUpdateNotificationOptions } from './notifications.repository';
-import type { Notification, NotificationId } from '../notification.entity';
 
 @Injectable()
 export class PrismaNotificationsRepository implements NotificationsRepository {
@@ -52,14 +51,13 @@ export class PrismaNotificationsRepository implements NotificationsRepository {
     const notification = await this.repository.update({
       where: { id: unprefixId(id) },
       data: {
-        content: pipe(updates.content, O.toUndefined),
-        category: pipe(
-          updates.category,
+        content: updates.content.pipe(O.toUndefined),
+        category: updates.category.pipe(
           O.map(NotificationCategoryAdapter.fromDomain),
           O.toUndefined,
         ),
-        read_at: pipe(updates.readAt, O.toUndefined),
-        canceled_at: pipe(updates.canceledAt, O.toUndefined),
+        read_at: updates.readAt.pipe(O.toUndefined),
+        canceled_at: updates.canceledAt.pipe(O.toUndefined),
       },
     });
 
@@ -73,7 +71,9 @@ export class PrismaNotificationsRepository implements NotificationsRepository {
       },
     });
 
-    return pipe(notification, O.fromNullableMap(NotificationAdapter.toDomain));
+    return O.fromNullable(notification).pipe(
+      O.map(NotificationAdapter.toDomain),
+    );
   }
 
   async findManyByRecipientId(

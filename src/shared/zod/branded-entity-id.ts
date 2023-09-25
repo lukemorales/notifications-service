@@ -1,7 +1,6 @@
-import { pipe } from 'fp-ts/function';
+import { pipe, S } from 'funkcia';
 import { z } from 'zod';
 
-import { S } from '../fp-ts';
 import { unprefixId } from '../unprefix-id';
 import { ulidSchema } from './schemas';
 

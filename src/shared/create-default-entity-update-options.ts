@@ -1,5 +1,5 @@
-import type { O } from './fp-ts';
+import type { Optional } from './fp-ts/option';
 
 export const createDefaultEntityUpdateOptions =
-  <T extends O.Optional<Record<string, unknown>>>(defaultOptions: T) =>
+  <T extends Optional<Record<string, unknown>>>(defaultOptions: T) =>
   (options: Partial<T>) => ({ ...defaultOptions, ...options });

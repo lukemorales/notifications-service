@@ -1,11 +1,11 @@
 import type { Prisma } from '@prisma/client';
-import { pipe } from 'fp-ts/function';
+import { O, pipe } from 'funkcia';
 import { ulid } from 'ulid';
 
-import { O } from '@shared/fp-ts';
+import { RecipientId } from '@features/recipients/recipient.entity';
+import type { Optional } from '@shared/fp-ts/option';
 import type { KeysToCamelCase } from '@shared/helpers';
 import { unprefixId } from '@shared/unprefix-id';
-import { RecipientId } from '@features/recipients/recipient.entity';
 
 import type { NotificationModel } from '../notification.model';
 import { NotificationModelCategory } from '../notification.model';
@@ -20,43 +20,36 @@ export class NotificationFactory {
       typeof value === 'string' ? new Date(value) : value;
 
     return factory.build({
-      id: pipe(overrides.id, O.fromNullableMap(unprefixId)),
+      id: O.fromNullable(overrides.id).pipe(O.map(unprefixId)),
       content: pipe(overrides.id, O.fromNullable),
-      category: pipe(
-        overrides.category,
-        O.fromNullableMap(NotificationModelCategory.parse),
+      category: O.fromNullable(overrides.category).pipe(
+        O.map(NotificationModelCategory.parse),
       ),
-      recipient_id: pipe(overrides.recipientId, O.fromNullable),
-      read_at: pipe(overrides.readAt, O.fromNullableMap(castToDate)),
-      canceled_at: pipe(overrides.canceledAt, O.fromNullableMap(castToDate)),
-      created_at: pipe(overrides.createdAt, O.fromNullableMap(castToDate)),
+      recipient_id: O.fromNullable(overrides.recipientId),
+      read_at: O.fromNullable(overrides.readAt).pipe(O.map(castToDate)),
+      canceled_at: O.fromNullable(overrides.canceledAt).pipe(O.map(castToDate)),
+      created_at: O.fromNullable(overrides.createdAt).pipe(O.map(castToDate)),
     });
   }
 
   private build(
-    overrides: O.Optional<Required<NotificationModel>>,
+    overrides: Optional<Required<NotificationModel>>,
   ): NotificationModel {
     return {
-      id: pipe(overrides.id, O.getOrElse(ulid)),
-      content: pipe(
-        overrides.content,
+      id: overrides.id.pipe(O.getOrElse(ulid)),
+      content: overrides.content.pipe(
         O.getOrElse(() => 'xxx.'.repeat(4).slice(0, -1)),
       ),
-      category: pipe(
-        overrides.category,
+      category: overrides.category.pipe(
         O.getOrElse(() => NotificationModelCategory.enum.SOCIAL),
       ),
-      recipient_id: pipe(
-        overrides.recipient_id,
+      recipient_id: overrides.recipient_id.pipe(
         O.getOrElse(ulid),
         RecipientId.parse,
       ),
-      read_at: pipe(overrides.read_at, O.toNullable),
-      canceled_at: pipe(overrides.canceled_at, O.toNullable),
-      created_at: pipe(
-        overrides.created_at,
-        O.getOrElse(() => new Date()),
-      ),
+      read_at: overrides.read_at.pipe(O.toNullable),
+      canceled_at: overrides.canceled_at.pipe(O.toNullable),
+      created_at: overrides.created_at.pipe(O.getOrElse(() => new Date())),
     };
   }
 }

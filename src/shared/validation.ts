@@ -1,15 +1,14 @@
 import { BadRequestException } from '@nestjs/common';
 
-import { flow, pipe } from 'fp-ts/function';
+import type { Result } from 'funkcia';
+import { R, coerce, flow } from 'funkcia';
 import type { z } from 'zod';
 import { fromZodError } from 'zod-validation-error';
-
-import { coerce, E } from './fp-ts';
 
 export const zodDecode = <T extends z.ZodType, ParsedData = T['_output']>(
   codec: T,
 ) =>
-  E.tryCatchK(
+  R.liftThrowable(
     flow(codec.parse, coerce<ParsedData>),
     coerce<z.ZodError<ParsedData>>,
   );
@@ -23,11 +22,10 @@ export const zodDecode = <T extends z.ZodType, ParsedData = T['_output']>(
  * When given a `Right` this function returns value in the `Right`.
  */
 export const throwBadRequestOnParseError = <E extends z.ZodError<T>, T>(
-  parseResult: E.Either<E, T>,
+  parseResult: Result<E, T>,
 ) =>
-  pipe(
-    parseResult,
-    E.getOrElse((error) => {
+  parseResult.pipe(
+    R.getOrElse((error) => {
       // eslint-disable-next-line no-console
       console.log(error.flatten());
 

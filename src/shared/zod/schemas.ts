@@ -1,5 +1,5 @@
+import type { Option } from 'funkcia';
 import { z } from 'zod';
-import type { Option } from 'fp-ts/Option';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isTaggedObject = (obj: unknown): obj is Record<'_tag', any> =>

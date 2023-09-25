@@ -1,23 +1,22 @@
 import {
+  Body,
   Controller,
   Get,
-  Post,
-  Body,
-  Patch,
-  Param,
   NotFoundException,
+  Param,
+  Patch,
+  Post,
 } from '@nestjs/common';
 
-import { pipe } from 'fp-ts/function';
+import { A, R, O, pipe } from 'funkcia';
 
-import { A, E, O } from '@shared/fp-ts';
-import { throwBadRequestOnParseError, zodDecode } from '@shared/validation';
 import { RecipientId } from '@features/recipients/recipient.entity';
+import { throwBadRequestOnParseError, zodDecode } from '@shared/validation';
 
-import { NotificationsService } from './notifications.service';
 import { CreateNotificationDto } from './dtos/create-notification.dto';
 import { NotificationAdapter } from './notification.adapter';
 import { NotificationId } from './notification.entity';
+import { NotificationsService } from './notifications.service';
 
 @Controller('notifications')
 export class NotificationsController {
@@ -31,7 +30,7 @@ export class NotificationsController {
       notificationId,
     );
 
-    return pipe(notification, O.map(NotificationAdapter.toJSON), O.toUndefined);
+    return notification.pipe(O.map(NotificationAdapter.toJSON), O.toUndefined);
   }
 
   @Get('from/:receiverId')
@@ -102,9 +101,7 @@ export class NotificationsController {
     return pipe(
       id,
       zodDecode(NotificationId),
-      E.getOrElse(() => {
-        throw new NotFoundException(`Notification not found: ${id}`);
-      }),
+      R.expect(() => new NotFoundException(`Notification not found: ${id}`)),
     );
   }
 
@@ -112,9 +109,7 @@ export class NotificationsController {
     return pipe(
       id,
       zodDecode(RecipientId),
-      E.getOrElse(() => {
-        throw new NotFoundException(`Receiver not found: ${id}`);
-      }),
+      R.expect(() => new NotFoundException(`Receiver not found: ${id}`)),
     );
   }
 }
